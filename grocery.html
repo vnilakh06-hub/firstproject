@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FreshMart Grocery</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f1f3f6;
+        }
+
+        header {
+            background: #2874f0;
+            color: white;
+            padding: 15px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        button {
+            padding: 10px;
+            background: #fb641b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #e55b14;
+        }
+
+        .products {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .product {
+            width: 250px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .product img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .page { display: none; }
+
+        #messageBox {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: black;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .success {
+            text-align: center;
+            font-size: 20px;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>🛒 FreshMart Grocery</header>
+
+<div id="messageBox"></div>
+
+<div class="container">
+
+    <!-- Register -->
+    <div id="registerPage" class="card page" style="display:block;">
+        <h2>Create Account</h2>
+        <input id="regUser" placeholder="Username">
+        <input id="regPass" type="password" placeholder="Password">
+        <button onclick="register()">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginPage" class="card page">
+        <h2>Login</h2>
+        <input id="loginUser" placeholder="Username">
+        <input id="loginPass" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Products -->
+    <div id="productPage" class="page">
+        <h2>Grocery Products</h2>
+
+        <div class="products">
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1567306226416-28f0efdc88ce">
+                <h3>Apple</h3>
+                <p>₹100</p>
+                <button onclick="addToCart('Apple',100)">Add to Cart</button>
+            </div>
+
+            <div class="product">
+                <img src="https://cdn.britannica.com/34/176234-050-0E0C55C6/Glass-milk.jpg">
+                <h3>Milk</h3>
+                <p>₹50</p>
+                <button onclick="addToCart('Milk',50)">Add to Cart</button>
+            </div>
+
+            <div class="product">
+                <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec">
+                <h3>Bread</h3>
+                <p>₹40</p>
+                <button onclick="addToCart('Bread',40)">Add to Cart</button>
+            </div>
+        </div>
+
+        <br>
+        <button onclick="goToCart()">Go to Cart</button>
+    </div>
+
+    <!-- Cart -->
+    <div id="cartPage" class="card page">
+        <h2>Your Cart</h2>
+        <div id="cartItems"></div>
+        <div class="total" id="totalPrice"></div>
+        <button onclick="placeOrder()">Place Order</button>
+    </div>
+
+    <!-- Order Success -->
+    <div id="successPage" class="card page">
+        <div class="success">✅ Order Placed Successfully!</div>
+    </div>
+
+</div>
+
+<script>
+let cart=[];
+
+function showPage(id){
+    document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+    document.getElementById(id).style.display="block";
+}
+
+function showMessage(msg){
+    let box=document.getElementById("messageBox");
+    box.innerText=msg;
+    box.style.display="block";
+    setTimeout(()=>box.style.display="none",2000);
+}
+
+// REGISTER (store in localStorage)
+function register(){
+    let user=regUser.value;
+    let pass=regPass.value;
+
+    if(user.length<3 || pass.length<3){
+        showMessage("Username & Password must be 3+ chars");
+        return;
+    }
+
+    localStorage.setItem("user",user);
+    localStorage.setItem("pass",pass);
+
+    showMessage("Registered Successfully");
+    showPage("loginPage");
+}
+
+// LOGIN (validate from storage)
+function login(){
+    let user=loginUser.value;
+    let pass=loginPass.value;
+
+    if(user===localStorage.getItem("user") &&
+       pass===localStorage.getItem("pass")){
+        showMessage("Login Successful");
+        showPage("productPage");
+    } else {
+        showMessage("Invalid Login");
+    }
+}
+
+// CART
+function addToCart(name,price){
+    cart.push({name,price});
+    showMessage(name+" added");
+}
+
+function goToCart(){
+    let container=document.getElementById("cartItems");
+    container.innerHTML="";
+    let total=0;
+
+    cart.forEach(item=>{
+        total+=item.price;
+        let div=document.createElement("div");
+        div.className="cart-item";
+        div.innerHTML=`${item.name} - ₹${item.price}`;
+        container.appendChild(div);
+    });
+
+    totalPrice.innerText="Total: ₹"+total;
+    showPage("cartPage");
+}
+
+function placeOrder(){
+    if(cart.length===0){
+        showMessage("Cart empty");
+        return;
+    }
+    cart=[];
+    showPage("successPage");
+}
+
+// 🤖 AUTOMATION (3 sec gap)
+window.onload=function(){
+
+    setTimeout(()=>{
+        regUser.value="demoUser";
+        regPass.value="1234";
+        register();
+    },1000);
+
+    setTimeout(()=>{
+        loginUser.value="demoUser";
+        loginPass.value="1234";
+        login();
+    },4000);
+
+    setTimeout(()=>{
+        document.querySelectorAll(".product button")[0].click();
+    },7000);
+
+    setTimeout(()=>{
+        goToCart();
+    },10000);
+
+    setTimeout(()=>{
+        placeOrder();
+    },13000);
+}
+</script>
+
+</body>
+</html>
